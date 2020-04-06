@@ -1,76 +1,55 @@
 " Language:    LiveScript
-" Maintainer:  George Zahariev
 " Maintainer:  Michael Quad
 " URL:         http://github.com/gkz/vim-ls
 " URL:         http://github.com/determin1st/vim-lsx
 " License:     WTFPL
-
 
 " default check
 if exists('current_compiler')
   finish
 endif
 let current_compiler = 'ls'
-" set defaults (compiler path and options)
+" set global defaults
 if !exists('livescript_compiler')
   let livescript_compiler = 'lsc'
+endif
+if !exists('livescript_extra_compiler')
   let livescript_extra_compiler = ''
 endif
-if !exists('livescript_make_options')
-  let livescript_make_options = ''
-endif
-" define a pattern to check
-" if livescript is the compiler
-let s:pat = '^' . current_compiler
-" gets a `makeprg` for the current file.
-" this is needed to support filenames with spaces and quotes,
-" but also not break generic `make`.
-function! s:GetMakePrg()
-  return g:livescript_compiler . ' -c ' . g:livescript_make_options . ' $* '
-  \      . fnameescape(expand('%'))
-endfunction
-
-" sets `makeprg` and returns 1 if coffee is still the compiler, else return 0.
-function! s:SetMakePrg()
-  if &l:makeprg =~ s:pat
-    let &l:makeprg = s:GetMakePrg()
-  elseif &g:makeprg =~ s:pat
-    let &g:makeprg = s:GetMakePrg()
-  else
-    return 0
+" create helper
+function! s:LiveScriptMake()
+  " after some fiddling with "make",
+  " i've decided to put everything straight into vimscript,
+  " make sux and this is a much cleaner way:
+  " compile livescript code and get the output
+  let o = system(g:livescript_compiler . ' -cb ' . shellescape(expand('%')))
+  " check for error
+  if strlen(o)
+    " simply dump everything
+    echo "\n"
+    echohl ErrorMsg
+    echo o . "\n"
+    echohl None
+    " finish
+    return
   endif
-  return 1
+  " check for extra compiler
+  if strlen(g:livescript_extra_compiler) && expand('%:e') ==# 'lsx'
+    " compile generated javascript with extra compiler
+    let f = expand('%:r') . '.js'
+    let o = system(g:livescript_extra_compiler . ' ' . shellescape(f))
+    " save the output
+    let o = ["// lsx: " . g:livescript_extra_compiler] + split(o, "\n", 1)
+    call writefile(o, f, 's')
+  endif
 endfunction
-
-" Set a dummy compiler so we can check whether to set locally or globally.
-CompilerSet makeprg=ls
-call s:SetMakePrg()
-
-CompilerSet errorformat=%EFailed\ at:\ %f,
-                       \%ECan't\ find:\ %f,
-                       \%CSyntaxError:\ %m\ on\ line\ %l,
-                       \%CError:\ Parse\ error\ on\ line\ %l:\ %m,
-                       \%C,%C\ %.%#
-
-" Compile the current file.
-command! -bang -bar -nargs=* LiveScriptMake make<bang> <args>
-
-" Set `makeprg` on rename since we embed the filename in the setting.
-augroup LiveScriptUpdateMakePrg
+" define the autocommands group
+augroup LiveScriptMakeAuto
+  " to prevent this defined twice,
+  " cleanup
   autocmd!
-  " Update `makeprg` if livescript is still the compiler, else stop running this
-  " function.
-  function! s:UpdateMakePrg()
-    if !s:SetMakePrg()
-      autocmd! LiveScriptUpdateMakePrg
-    endif
-  endfunction
-  " set autocmd locally if compiler was set locally.
-  if &l:makeprg =~ s:pat
-    autocmd BufFilePost,BufWritePost <buffer> call s:UpdateMakePrg()
-  else
-    autocmd BufFilePost,BufWritePost          call s:UpdateMakePrg()
-  endif
+  " compile livescript file on save
+  autocmd BufWritePost <buffer> call s:LiveScriptMake()
 augroup END
 
 " editor settings

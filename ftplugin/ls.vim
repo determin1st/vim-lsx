@@ -2,12 +2,14 @@
 " Maintainer:  George Zahariev
 " URL:         http://github.com/gkz/vim-ls
 " License:     WTFPL
-"
+
+
+" default check
 if exists("b:did_ftplugin")
   finish
 endif
-
 let b:did_ftplugin = 1
+" ...
 
 setlocal formatoptions-=t formatoptions+=croql
 setlocal comments=:#
@@ -21,6 +23,12 @@ endif
 " check here in case the compiler above isn't loaded.
 if !exists('livescript_compiler')
   let livescript_compiler = 'lsc'
+endif
+if !exists('livescript_extra_compiler')
+  let livescript_extra_compiler = ''
+endif
+if !exists('livescript_compile_vert')
+  let livescript_compile_vert = 1
 endif
 
 " resets variables for the current buffer.
@@ -52,18 +60,15 @@ function! s:LiveScriptCompileUpdate(startline, endline, ext)
   if !len(input)
     return
   endif
-
-  " compile input.
+  " compile the input
   let output = system(g:livescript_compiler . ' -scb 2>&1', input)
-  " do extra compilation steps
-  " livescript => extra => javascript
-  if a:ext ==? 'lsx'
-    " add a message
-    let output = "// Generated with extra compile step (lsx)\n" . output
-    " compile
+  " check for extra compiler
+  if a:ext ==# 'lsx'
+    " add extra message and
+    " feed the compiler
+    let output = "// lsx: " . g:livescript_extra_compiler . "\n" . output
     let output = system(g:livescript_extra_compiler . ' 2>&1', output)
   endif
-
   " Be sure we're in the compile buffer before overwriting.
   if exists('b:livescript_compile_buf')
     echoerr 'compile buffers are messed up'
@@ -115,7 +120,7 @@ function! s:LiveScriptCompile(startline, endline, args)
   let unwatch = a:args =~ '\<unwatch\>'
   let size = str2nr(matchstr(a:args, '\<\d\+\>'))
   " Determine default split direction.
-  if exists('g:livescript_compile_vert')
+  if g:livescript_compile_vert
     let vert = 1
   else
     let vert = a:args =~ '\<vert\%[ical]\>'
@@ -135,7 +140,7 @@ function! s:LiveScriptCompile(startline, endline, args)
   " using current file extention,
   " determine if extra compilation step is required
   let b:livescript_ext = ''
-  if exists('g:livescript_extra_compiler')
+  if strlen(g:livescript_extra_compiler)
     let b:livescript_ext = expand('%:e')
   endif
   " build the compile buffer if it doesn't exist.

@@ -16,7 +16,10 @@ endif
 if !exists('livescript_extra_compiler')
   let livescript_extra_compiler = ''
 endif
-" create helper
+if !exists('livescript_compile_auto')
+  let livescript_compile_auto = 1
+endif
+" create helpers
 function! s:LiveScriptMake()
   " after some fiddling with "make",
   " i've decided to put everything straight into vimscript,
@@ -43,13 +46,18 @@ function! s:LiveScriptMake()
     call writefile(o, f, 's')
   endif
 endfunction
+function! s:LiveScriptAutoMake()
+  if g:livescript_compile_auto
+    call s:LiveScriptMake()
+  endif
+endfunction
 " define the autocommands group
 augroup LiveScriptMakeAuto
   " to prevent this defined twice,
   " cleanup
   autocmd!
   " compile livescript file on save
-  autocmd BufWritePost <buffer> call s:LiveScriptMake()
+  autocmd BufWritePost <buffer> call s:LiveScriptAutoMake()
 augroup END
 
 " editor settings

@@ -1,9 +1,3 @@
-" Language:    LiveScript
-" Maintainer:  George Zahariev
-" URL:         http://github.com/gkz/vim-ls
-" License:     WTFPL
-
-
 " default check
 if exists("b:did_ftplugin")
   finish

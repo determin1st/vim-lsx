@@ -57,7 +57,9 @@ augroup LiveScriptMakeAuto
   " cleanup
   autocmd!
   " compile livescript file on save
-  autocmd BufWritePost <buffer> call s:LiveScriptAutoMake()
+  "autocmd BufWritePost <buffer> call s:LiveScriptAutoMake()
+  autocmd BufWritePost *.ls call s:LiveScriptAutoMake()
+  autocmd BufWritePost *.lsx call s:LiveScriptAutoMake()
 augroup END
 
 " editor settings

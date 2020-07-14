@@ -1,15 +1,10 @@
-" Language:    LiveScript
-" Maintainer:  Michael Quad
-" URL:         http://github.com/gkz/vim-ls
-" URL:         http://github.com/determin1st/vim-lsx
-" License:     WTFPL
-
 " default check
 if exists('current_compiler')
   finish
 endif
 let current_compiler = 'ls'
-" set global defaults
+" set defaults
+" {{{
 if !exists('livescript_compiler')
   let livescript_compiler = 'lsc'
 endif
@@ -19,8 +14,10 @@ endif
 if !exists('livescript_compile_auto')
   let livescript_compile_auto = 1
 endif
+" }}}
 " create helpers
 function! s:LiveScriptMake()
+  " {{{
   " after some fiddling with "make",
   " i've decided to put everything straight into vimscript,
   " make sux and this is a much cleaner way:
@@ -45,21 +42,25 @@ function! s:LiveScriptMake()
     let o = ["// lsx: " . g:livescript_extra_compiler] + split(o, "\n", 1)
     call writefile(o, f, 's')
   endif
+  " }}}
 endfunction
 function! s:LiveScriptAutoMake()
+  " {{{
   if g:livescript_compile_auto
     call s:LiveScriptMake()
   endif
+  " }}}
 endfunction
-" define the autocommands group
+" set autocommands
 augroup LiveScriptMakeAuto
-  " to prevent this defined twice,
+  " {{{
   " cleanup
   autocmd!
   " compile livescript file on save
   "autocmd BufWritePost <buffer> call s:LiveScriptAutoMake()
   autocmd BufWritePost *.ls call s:LiveScriptAutoMake()
   autocmd BufWritePost *.lsx call s:LiveScriptAutoMake()
+  " }}}
 augroup END
 
 " editor settings

@@ -1,19 +1,20 @@
 " default check
-if exists("b:did_ftplugin")
+if exists('b:did_ftplugin')
   finish
 endif
 let b:did_ftplugin = 1
-" ...
-
+" default file config
+compiler ls
 setlocal formatoptions-=t formatoptions+=croql
 setlocal comments=:#
 setlocal commentstring=#\ %s
 setlocal omnifunc=javascriptcomplete#CompleteJS
-
+setlocal foldmethod=marker
+setlocal fileencoding=utf-8 nobomb
 " enable LiveScriptMake if it won't overwrite any settings.
-if !len(&l:makeprg)
-  compiler ls
-endif
+"if !len(&l:makeprg)
+"  compiler ls
+"endif
 " check here in case the compiler above isn't loaded.
 if !exists('livescript_compiler')
   let livescript_compiler = 'lsc'
